@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.10.1
+Date: Aug 24, 2021
+  Changes:
+    - Correct nil error for modded placable entities which take multiple types of fuel, in which the first category is not available in player inventory
+
+---------------------------------------------------------------------------------------------------
 Version: 0.10.0
 Date: Dec 2, 2020
   Changes:

@@ -330,14 +330,19 @@ function fill4me.load_fuel(entity, lent, plidx)
 	local player = game.get_player(plidx)
 	local found_fuel = false
 	for name, t in pairs(lent.fuel_categories) do
-		for _, fuel in pairs(fill4me.for_player(plidx, "fuels")[name]) do
-			if try_fuel_load(entity, player, fuel) then
-				found_fuel = true
+		-- Prevent nil errors when no candidate fuels are available for given entity
+		-- This will fall through to the next available type of fuel.
+		fuel_names = fill4me.for_player(plidx, "fuels")[name]
+		if fuel_names then
+			for _, fuel in pairs(fuel_names) do
+				if try_fuel_load(entity, player, fuel) then
+					found_fuel = true
+					break
+				end
+			end
+			if found_fuel then
 				break
 			end
-		end
-		if found_fuel then
-			break
 		end
 	end
 end
