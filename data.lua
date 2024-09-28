@@ -17,21 +17,23 @@ data:extend{
         name = "fill4me-shortcut-toggle",
         order = "fill4me",
         action = "lua",
-        toggleable = "true",
+        toggleable = true,
         localised_name = {"fill4me.gui.enable_button"},
-        icon = {
-            filename = "__Fill4Me__/images/fill4me-32.png",
-            priority = "extra-high",
-            size = 32,
-            scale = 1,
-            flags = {"icon"}
-        },
-        small_icon = {
-            filename = "__Fill4Me__/images/fill4me-24.png",
-            priority = "extra-high",
-            size = 24,
-            scale = 1,
-            flags = {"icon"}
-        },
+        icon = "__Fill4Me__/images/fill4me-64.png",
+        small_icon = "__Fill4Me__/images/fill4me-64.png",
+        --icons = {
+        --    {
+        --        icon = "__Fill4Me__/images/fill4me-32.png",
+        --        size = 32,
+        --        scale = 2,
+        --    },
+        --},
+        --small_icons = {
+        --    {
+        --        icon = "__Fill4Me__/images/fill4me-24.png",
+        --        size = 24,
+        --        scale = 1,
+        --    },
+        --},
     }
 }

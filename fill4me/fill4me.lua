@@ -56,8 +56,8 @@ require 'util' -- needed by 'production-score' (below)
 fill4me = {}
 
 function fill4me.initMod(event)
-	if not global.fill4me then
-		global.fill4me = {
+	if not storage.fill4me then
+		storage.fill4me = {
 			initialized = false,
 			fuels = {},
 			ammos = {},
@@ -66,26 +66,26 @@ function fill4me.initMod(event)
 		}
 	end
 	-- Need this to happen after, since it could be part of a mod upgrade.
-	if not global.fill4me.maximum_values then
-		global.fill4me.maximum_values = {
+	if not storage.fill4me.maximum_values then
+		storage.fill4me.maximum_values = {
 			fuel = 0,
 			ammo = 0,
 		}
 	end
-	if not global.fill4me.initialized then
+	if not storage.fill4me.initialized then
 		fill4me.loadModSettings()
 		fill4me.evaluate_items()
 		fill4me.evaluate_entities()
 		fill4me.reset_players_loadables()
-		global.fill4me.initialized = true
+		storage.fill4me.initialized = true
 	end
 end
 function fill4me.initPlayer(event)
 	fill4me.player(event.player_index)
 end
 function fill4me.reInitMod(event)
-	if global.fill4me then
-		global.fill4me.initialized = false
+	if storage.fill4me then
+		storage.fill4me.initialized = false
 	end
 	fill4me.initMod(event)
 end
@@ -102,7 +102,7 @@ function fill4me.runtimeModSettingChanged(event)
 	end
 end
 function fill4me.reset_players_loadables()
-	local f4mdata = global.fill4me
+	local f4mdata = storage.fill4me
 	for idx, pldata in pairs(f4mdata.players) do
 		fill4me.reset_player_lists(idx)
 		fill4me.loadModPlayerSettings(idx)
@@ -159,8 +159,8 @@ end
 
 -- Scan through entities, finding those that take fuel & ammo.
 function fill4me.evaluate_entities()
-	global.fill4me.loadable_entities = {}
-	local lent = global.fill4me.loadable_entities
+	storage.fill4me.loadable_entities = {}
+	local lent = storage.fill4me.loadable_entities
 	for _, entdata in pairs(LoadEnts.list_of_fireables()) do
 		lent[entdata.name] = table.merge(lent[entdata.name] or {}, entdata)
 	end
@@ -171,7 +171,7 @@ end
 
 -- Scan through items, finding fuels & ammos
 function fill4me.evaluate_items()
-	local gs = global.fill4me
+	local gs = storage.fill4me
 	gs.fuels = {}
 	gs.ammos = {}
 	
@@ -191,7 +191,7 @@ function fill4me.evaluate_items()
 	end
 	
 	-- evaluate ammunition items
-	local ammos = global.fill4me.ammos
+	local ammos = storage.fill4me.ammos
 	for idx, name in pairs(Ammo.categories()) do
 		ammos[name] = {}
 	end
@@ -283,7 +283,7 @@ end
 function fill4me.load_ammo(entity, lent, plidx)
 	local player = game.get_player(plidx)
 	local pldata = fill4me.player(plidx)
-	local proto = game.entity_prototypes[entity.name]
+	local proto = prototypes.entity[entity.name]
 	if lent.ammo_categories then
 		for _, category in pairs(lent.ammo_categories) do
 			for _, ammo in pairs(fill4me.for_player(plidx, "ammos")[category]) do
@@ -376,7 +376,7 @@ end
 
 function fill4me.loadModSettings(event)
 	local gms = settings.global
-	local gs = global.fill4me
+	local gs = storage.fill4me
 	if gms['fill4me-maximum-fuel-value'] then
 		gs['maximum_values'].fuel = gms['fill4me-maximum-fuel-value'].value
 	end
@@ -405,8 +405,8 @@ function fill4me.loadModPlayerSettings(plidx, pldata)
 end
 
 function fill4me.player(plidx)
-	if not global.fill4me.players[plidx] then
-		global.fill4me.players[plidx] = {
+	if not storage.fill4me.players[plidx] then
+		storage.fill4me.players[plidx] = {
 			enable = true,
 			max_fuel_load = 25,
 			max_fuel_load_percent = 0.12,
@@ -421,13 +421,13 @@ function fill4me.player(plidx)
 		-- overrides from player mod settings (if exists.)
 		local gms = settings.get_player_settings(plidx)
 		if gms then
-			local f4mplayer = global.fill4me.players[plidx]
+			local f4mplayer = storage.fill4me.players[plidx]
 			-- always need to pass the f4m player here, otherwise this code
 			-- will do an infinite loop, back & forth.
 			fill4me.loadModPlayerSettings(plidx, f4mplayer)
 		end
 	end
-	local f4mplayer = global.fill4me.players[plidx]
+	local f4mplayer = storage.fill4me.players[plidx]
 	fill4me.try_migrate_player(f4mplayer)
 	return f4mplayer
 end
@@ -446,7 +446,7 @@ function fill4me.try_migrate_player(f4mplayer)
 end
 
 function fill4me.reset_player_lists(player_index)
-	local player = global.fill4me.players[player_index]
+	local player = storage.fill4me.players[player_index]
 	if player then
 		player.loadable_entities = nil
 		player.ammos = nil
@@ -467,11 +467,11 @@ function fill4me.for_player(player, section)
 		end
 	end
 	if f4m_player then
-		if not global.fill4me[section] then
+		if not storage.fill4me[section] then
 			return
 		end
 		if not (f4m_player[section] and type(f4m_player[section]) == "table") then
-			f4m_player[section] = table.deepcopy(global.fill4me[section])
+			f4m_player[section] = table.deepcopy(storage.fill4me[section])
 		end
 		return f4m_player[section]
 	end
@@ -491,11 +491,10 @@ function fill4me.textRemove(player, entity, item_name, quantity, color)
 	pos.x = pos.x + 0.75
 	pos.y = pos.y - 0.5
 	local textcolor = color or {r=1, g=1, b=1, a=1}
-	player.surface.create_entity({ 
-		name = "flying-text",
-		color = textcolor,
-		position = pos,
+	player.create_local_flying_text({
 		text = {'fill4me.removed', quantity, item_name},
+		position = pos,
+		color = textcolor,
 	})
 end
 
@@ -536,7 +535,8 @@ function fill4me.toggle_ignore_ammo_radius(plidx)
 end
 
 Event.register(Event.core_events.configuration_changed, fill4me.reInitMod)
-Event.register(Event.def("softmod_init"), fill4me.initMod)
+--Event.register(Event.def("softmod_init"), fill4me.initMod)
+Event.register(Event.core_events.on_init, fill4me.initMod)
 Event.register(defines.events.on_runtime_mod_setting_changed, fill4me.runtimeModSettingChanged)
 Event.register(defines.events.on_built_entity, fill4me.built_entity)
 Event.register(defines.events.script_raised_built, fill4me.script_built_entity)

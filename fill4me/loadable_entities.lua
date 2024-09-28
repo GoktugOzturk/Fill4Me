@@ -38,7 +38,7 @@ LoadEnts = {}
 
 function LoadEnts.list_of_fireables()
 	local entities = {}
-	for name, proto in pairs(game.entity_prototypes) do
+	for name, proto in pairs(prototypes.entity) do
 		local loadable = false
 		local edata = {
 			name = name,
@@ -72,7 +72,7 @@ end
 
 function LoadEnts.list_of_fuelables()
 	local entities = {}
-	for name, proto in pairs(game.entity_prototypes) do
+	for name, proto in pairs(prototypes.entity) do
 		local loadable = false
 		local edata = {
 			name = name,

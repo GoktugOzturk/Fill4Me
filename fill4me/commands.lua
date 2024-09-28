@@ -65,7 +65,7 @@ function fill4me_cmd.include(event)
 	local player = playerFromIndex(event.player_index)
 	local f4mplayer = fill4me.player(player.index)
 	if event.parameter then
-		local fuel_list = global.fill4me.fuels
+		local fuel_list = storage.fill4me.fuels
 		local cat = nil
 		local fuel_to_add = nil
 		for catname, data in pairs(fuel_list) do
@@ -137,7 +137,7 @@ end
 
 function fill4me_cmd.list_all_fuel(event)
 	local player = game.get_player(event.player_index)
-	local fuel_list = global.fill4me.fuels
+	local fuel_list = storage.fill4me.fuels
 	for index, name in pairs(Fuel.categories()) do
 		local fuels = {}
 		for _, fuel in pairs(fuel_list[name]) do
@@ -178,7 +178,7 @@ function fill4me_cmd.debug(event)
 	local player = game.get_player(event.player_index)
 	local print = game.print
 	if player then print = player.print end
-	print(serpent.line(global.fill4me))
+	print(serpent.line(storage.fill4me))
 end
 
 function fill4me_cmd.debug_fuel_type(event)
@@ -187,9 +187,9 @@ function fill4me_cmd.debug_fuel_type(event)
 	if player then print = player.print end
 	if event.parameter then
 		local params = parseParams(event.parameter)
-		print(serpent.line(global.fill4me))
+		print(serpent.line(storage.fill4me))
 	else
-		print(serpent.line(global.fill4me.fuels))
+		print(serpent.line(storage.fill4me.fuels))
 	end
 end
 
@@ -199,7 +199,7 @@ function fill4me_cmd.debug_ammo_type(event)
 	if player then print = player.print end
 	if event.parameter then
 		local params = parseParams(event.parameter)
-		local ammos = global.fill4me.ammos[params[1]]
+		local ammos = storage.fill4me.ammos[params[1]]
 		if ammos then
 			for _, data in ipairs(ammos) do
 				print(serpent.line(data))
@@ -209,7 +209,7 @@ function fill4me_cmd.debug_ammo_type(event)
 		end
 	else
 		local categories = {}
-		for catname, data in pairs(global.fill4me.ammos) do
+		for catname, data in pairs(storage.fill4me.ammos) do
 			table.insert(categories, catname)
 		end
 		print(serpent.line(categories))
@@ -222,23 +222,27 @@ function fill4me_cmd.debug_entity(event)
 	if player then print = player.print end
 	if event.parameter then
 		local params = parseParams(event.parameter)
-		print(serpent.line(global.fill4me))
+		print(serpent.line(storage.fill4me))
 	else
-		print(serpent.line(global.fill4me.loadable_entities))
+		print(serpent.line(storage.fill4me.loadable_entities))
 	end
 end
 
 function fill4me_cmd.debug_global(event)
 	local player = game.get_player(event.player_index)
 	local print = game.print
-	if player then print = player.print end
-	print(serpent.line(global.fill4me))
+	if player then 
+		print = player.print
+	end
+	print(serpent.line(storage.fill4me))
 end
 
 function fill4me_cmd.debug_player(event)
 	local player = game.get_player(event.player_index)
 	local print = game.print
-	if player then print = player.print end
+	if player then
+		print = player.print
+	end
 	local pldata = nil
 	if event.parameter then
 		local params = parseParams(event.parameter)

@@ -39,7 +39,7 @@ Fuel = {}
 function Fuel.categories()
 	local cathash = {}
 	local catlist = {}
-	for name, proto in pairs(game.item_prototypes) do
+	for name, proto in pairs(prototypes.item) do
 		if proto.fuel_category then
 			cathash[proto.fuel_category] = true
 		end
@@ -52,7 +52,7 @@ end
 
 function Fuel.list()
 	local fuellist = {}
-	for name, proto in pairs(game.item_prototypes) do
+	for name, proto in pairs(prototypes.item) do
 		if proto.fuel_category then
 			table.insert(fuellist, {
 				name = proto.name,

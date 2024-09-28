@@ -41,7 +41,7 @@ production_score = require 'production-score'
 
 function Ammo.categories()
 	local catlist = {}
-	for name, proto in pairs(game.ammo_category_prototypes) do
+	for name, proto in pairs(prototypes.ammo_category) do
 		table.insert(catlist, name)
 	end
 	return catlist
@@ -51,24 +51,26 @@ end
 function Ammo.list()
 	local ammolist = {}
 	local item_craft_values = Ammo.price_list()
-	for _, proto in pairs(game.item_prototypes) do
+	for _, proto in pairs(prototypes.item) do
 		-- evaluate ammunition items
-		local ammotype = proto.get_ammo_type()
-		if ammotype and ammotype.action then
-			local damage = Ammo.damage_from_actions(ammotype.action, {})
-			local radius = Ammo.radius_from_actions(ammotype.action, {})
-			local data = {
-				name = proto.name,
-				category = ammotype.category,
-				craft_value = item_craft_values[proto.name] or 0,
-				damage = damage,
-				i18n = proto.localised_name,
-				max_size = math.ceil(proto.stack_size / 2),
-				radius = radius,
-			}
-			table.insert(ammolist, data)
-		elseif ammotype then
-			log("Warning: Ammotype without action: " .. serpent.block(ammotype))
+		if proto and proto.ammo_category then
+			local ammotype = proto.get_ammo_type()
+			if ammotype and ammotype.action then
+				local damage = Ammo.damage_from_actions(ammotype.action, {})
+				local radius = Ammo.radius_from_actions(ammotype.action, {})
+				local data = {
+					name = proto.name,
+					category = proto.ammo_category.name,
+					craft_value = item_craft_values[proto.name] or 0,
+					damage = damage,
+					i18n = proto.localised_name,
+					max_size = math.ceil(proto.stack_size / 2),
+					radius = radius,
+				}
+				table.insert(ammolist, data)
+			elseif ammotype then
+				log("Warning: Ammotype without action: " .. serpent.block(ammotype))
+			end
 		end
 	end
 	return ammolist
@@ -76,13 +78,13 @@ end
 
 function Ammo.price_list()
 	-- get or build & get price list from factorio's pvp code.
-	if not global.fill4me_internal then
-		global.fill4me_internal = {}
+	if not storage.fill4me_internal then
+		storage.fill4me_internal = {}
 	end
-	if not global.fill4me_internal.price_list then
-		global.fill4me_internal.price_list = production_score.generate_price_list()
+	if not storage.fill4me_internal.price_list then
+		storage.fill4me_internal.price_list = production_score.generate_price_list()
 	end
-	return global.fill4me_internal.price_list
+	return storage.fill4me_internal.price_list
 end
 
 --
@@ -122,7 +124,7 @@ function Ammo.entity_attack_damage(entity_name, stack_names)
 	end
 	table.insert(stack_names, entity_name)
 
-	local ent = game.entity_prototypes[entity_name]
+	local ent = prototypes.entity[entity_name]
 	local damage = 0
 	if ent then
 		if ent.attack_result then
@@ -194,7 +196,7 @@ function Ammo.radius_from_entity(entity_name, stack_names)
 	end
 	table.insert(stack_names, entity_name)
 
-	local ent = game.entity_prototypes[entity_name]
+	local ent = prototypes.entity[entity_name]
 	local radius = 0
 	if ent then
 		if ent.attack_result then

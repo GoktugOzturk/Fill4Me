@@ -27,7 +27,9 @@ end
 Event = { --luacheck: allow defined top
     _registry = {},
     core_events = {
+        on_init = -1,
         init = -1,
+        on_load = -2,
         load = -2,
         configuration_changed = -3,
         init_and_config = {-1, -3},
