@@ -82,6 +82,8 @@ function fill4me.initMod(event)
 end
 function fill4me.initPlayer(event)
 	fill4me.player(event.player_index)
+	local player = playerFromIndex(event.player_index)
+	player.set_shortcut_toggled("fill4me-shortcut-toggle", true)
 end
 function fill4me.reInitMod(event)
 	if storage.fill4me then
@@ -511,9 +513,9 @@ function fill4me.toggle(plidx)
 	--fill4me_guib.reset_button_sprite_for(plidx)
 
 	if pldata.enable then
-		player.print({'fill4me.prefix', {'fill4me.enabled'} })
+		player.set_shortcut_toggled("fill4me-shortcut-toggle", true)
 	else
-		player.print({'fill4me.prefix', {'fill4me.disabled'}})
+		player.set_shortcut_toggled("fill4me-shortcut-toggle", false)
 	end
 	return pldata.enable
 end
