@@ -151,11 +151,9 @@ function Event.dispatch(event)
 
                 -- If the handler errors lets make sure someone notices
                 if not success then
+                    log(err) -- Log the error to factorio-current.log
                     if _G.game and #game.connected_players > 0 then -- may be nil in on_load
-                        log(err) -- Log the error to factorio-current.log
-                        game.print(err)
-                    else -- no players received the message, force a real error so someone notices
-                        error(err) -- no way to handle errors cleanly when the game is not up
+                        _G.game.print(err)
                     end
                     -- continue processing the remaning handlers. In most cases they won"t be related to the failed code.
                 end
