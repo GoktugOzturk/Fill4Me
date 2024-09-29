@@ -9,6 +9,7 @@ Date: Oct 14, 2024
     - Fix a crash related to the Editor, specifically when opening a save in the editor.
     - Fix listening to mod settings for other mods.
     - Remove the setting to hide the toggle button.  Factorio handles this itself.
+    - Add range check when refilling ammo/fuel to an already placed turrent/vehicle.  Can be disabled in Mod settings -> Map to return to the original behavior.
 
 ---------------------------------------------------------------------------------------------------
 Version: 0.10.1

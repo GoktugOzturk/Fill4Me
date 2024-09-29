@@ -16,6 +16,13 @@ data:extend({
 		setting_type = "runtime-global",
 		default_value = 0
 	},
+	{
+		type = "bool-setting",
+		name = "fill4me-refill-ignores-range-limit",
+		-- name is used to determine localization
+		setting_type = "runtime-global",
+		default_value = false
+	},
 	--
 	-- per player settings
 	--

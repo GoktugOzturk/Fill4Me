@@ -214,7 +214,8 @@ function fill4me.fill_entity(entity, player_index, player, pldata)
 		if player == nil then
 			player = game.get_player(player_index)
 		end
-		if player.can_reach_entity(entity) then
+		local unlimited_range = settings.global["fill4me-refill-ignores-range-limit"].value
+		if unlimited_range or player.can_reach_entity(entity) then
 			if loadable_entity.fuel_categories then
 				fill4me.load_fuel(entity, loadable_entity, player_index)
 			end
