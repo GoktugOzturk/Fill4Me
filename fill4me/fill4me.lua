@@ -92,15 +92,16 @@ function fill4me.reInitMod(event)
 	fill4me.initMod(event)
 end
 function fill4me.runtimeModSettingChanged(event)
+	local idx, edx, matches = string.find(event.setting, "fill4me")
+	if idx ~= 1 then
+		return
+	end
 	if event.setting_type == "runtime-per-user" then
 		fill4me.loadModPlayerSettings(event.player_index)
 	elseif event.setting_type == "runtime-global" then
-		local max_changed = string.match(event.setting, "fill4me%-maximum%-(%S+)%-value")
-		if max_changed then
-			fill4me.loadModSettings()
-			fill4me.evaluate_items()
-			fill4me.evaluate_entities()
-		end
+		fill4me.loadModSettings()
+		fill4me.evaluate_items()
+		fill4me.evaluate_entities()
 	end
 end
 function fill4me.reset_players_loadables()
