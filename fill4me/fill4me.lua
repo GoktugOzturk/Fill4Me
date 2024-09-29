@@ -110,6 +110,11 @@ function fill4me.reset_players_loadables()
 	game.print({'fill4me.prefix', {'fill4me.players_reset'}})
 end
 
+function fill4me.reset_player_from_event(event)
+	local player = game.get_player(event.player_index)
+	fill4me.reset_player_lists(player.index)
+end
+
 -- split string by comma (ignores whitespace) to table/list
 local function csv_string_to_list(str)
 	items = {}
@@ -124,7 +129,7 @@ function fill4me.load_blacklist(plidx)
 	local player = playerFromIndex(plidx)
 	local exclusion_fuel = csv_string_to_list(player.mod_settings["fill4me-blacklist-fuel"].value)
 	local event = { player_index = plidx }
-	fill4me_cmd.reset_me(event)
+	fill4me.reset_player_from_event(event)
 	
 	for _, fuel in pairs(exclusion_fuel) do
 		event.parameter = fuel

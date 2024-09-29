@@ -148,8 +148,7 @@ function fill4me_cmd.list_all_fuel(event)
 end
 
 function fill4me_cmd.reset_me(event)
-	local player = game.get_player(event.player_index)
-	fill4me.reset_player_lists(player.index)
+	fill4me.reset_player_from_event(event)
 	player.print({'fill4me.prefix', {'fill4me.cmd.reset'}})
 end
 
