@@ -40,17 +40,7 @@ function f4m_keybind.re_up(event)
     local player = game.get_player(event.player_index)
     local entity = player.selected
     if entity then
-        -- This is copied from fill4me.lua, and violates DRY.
-        local pldata = fill4me.player(event.player_index)
-		local lent = fill4me.for_player(pldata, "loadable_entities")[entity.name]
-		if lent then
-			if lent.fuel_categories then
-				fill4me.load_fuel(entity, lent, event.player_index)
-			end
-			if lent.guns or lent.ammo_categories then
-				fill4me.load_ammo(entity, lent, event.player_index)
-			end
-		end
+		fill4me.fill_entity(entity, event.player_index, player, nil)
     end
 end
 

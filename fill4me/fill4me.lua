@@ -153,15 +153,7 @@ function fill4me.built_entity(event)
 	local pldata = fill4me.player(event.player_index)
 	if pldata.enable and event.created_entity.valid then
 		local entity = event.created_entity
-		local lent = fill4me.for_player(pldata, "loadable_entities")[entity.name]
-		if lent then
-			if lent.fuel_categories then
-				fill4me.load_fuel(entity, lent, event.player_index)
-			end
-			if lent.guns or lent.ammo_categories then
-				fill4me.load_ammo(entity, lent, event.player_index)
-			end
-		end
+		fill4me.fill_entity(entity, event.player_index, nil, pldata)
 	end
 end
 
@@ -210,6 +202,31 @@ function fill4me.evaluate_items()
 	end
 	for name, itemlist in pairs(ammos) do
 		table.sort(itemlist, fill4me.item_dmg_sort_high)
+	end
+end
+
+function fill4me.fill_entity(entity, player_index, player, pldata)
+	if pldata == nil then
+		pldata = fill4me.player(player_index)
+	end
+	local loadable_entity = fill4me.for_player(pldata, "loadable_entities")[entity.name]
+	if loadable_entity then
+		if player == nil then
+			player = game.get_player(player_index)
+		end
+		if player.can_reach_entity(entity) then
+			if loadable_entity.fuel_categories then
+				fill4me.load_fuel(entity, loadable_entity, player_index)
+			end
+			if loadable_entity.guns or loadable_entity.ammo_categories then
+				fill4me.load_ammo(entity, loadable_entity, player_index)
+			end
+		else
+			player.create_local_flying_text({
+				text = {'cant-reach'},
+				position = entity.position,
+			})
+		end
 	end
 end
 
