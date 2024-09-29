@@ -46,6 +46,7 @@ require 'lib/event_extend'
 require 'fill4me/ammo'
 require 'fill4me/fuel'
 require 'fill4me/loadable_entities'
+require 'lib/fb_util'
 
 -- production score is used in lieu of being able to evaluate the damage of
 -- smoke-based entities/items.  There is a failing in the code exposed to lua
@@ -55,6 +56,7 @@ require 'util' -- needed by 'production-score' (below)
 
 fill4me = {}
 
+---@param event EventData | table
 function fill4me.initMod(event)
 	if not storage.fill4me then
 		storage.fill4me = {
@@ -80,17 +82,22 @@ function fill4me.initMod(event)
 		storage.fill4me.initialized = true
 	end
 end
+---@param event EventData | table
 function fill4me.initPlayer(event)
 	fill4me.player(event.player_index)
 	local player = playerFromIndex(event.player_index)
-	player.set_shortcut_toggled("fill4me-shortcut-toggle", true)
+	if player then
+		player.set_shortcut_toggled("fill4me-shortcut-toggle", true)
+	end
 end
+---@param event EventData | table
 function fill4me.reInitMod(event)
 	if storage.fill4me then
 		storage.fill4me.initialized = false
 	end
 	fill4me.initMod(event)
 end
+---@param event EventData | table
 function fill4me.runtimeModSettingChanged(event)
 	local idx, edx, matches = string.find(event.setting, "fill4me")
 	if idx ~= 1 then
@@ -113,12 +120,16 @@ function fill4me.reset_players_loadables()
 	game.print({'fill4me.prefix', {'fill4me.players_reset'}})
 end
 
+---@param event EventData | table
 function fill4me.reset_player_from_event(event)
-	local player = game.get_player(event.player_index)
-	fill4me.reset_player_lists(player.index)
+	local player = playerFromIndex(event.player_index)
+	if player then
+		fill4me.reset_player_lists(player.index)
+	end
 end
 
--- split string by comma (ignores whitespace) to table/list
+--- split string by comma (ignores whitespace) to table/list
+---@param str string
 local function csv_string_to_list(str)
 	items = {}
 	for item in string.gmatch(str,'[^,%s]+') do
@@ -126,10 +137,17 @@ local function csv_string_to_list(str)
 	end
 	return items
 end
---Function to apply blacklist settings to current player
+
+--- Function to apply blacklist settings to current player
+--- @param plidx integer
 function fill4me.load_blacklist(plidx)
 	-- Reset player F4M filters; get new list; add individually to exclude list.
 	local player = playerFromIndex(plidx)
+	if player == nil then
+		log("[ERR] Unable to find player for `load_blacklist()`")
+		return
+	end
+	---@diagnostic disable-next-line: param-type-mismatch
 	local exclusion_fuel = csv_string_to_list(player.mod_settings["fill4me-blacklist-fuel"].value)
 	local event = { player_index = plidx }
 	fill4me.reset_player_from_event(event)
@@ -149,6 +167,7 @@ function fill4me.load_blacklist(plidx)
 end
 
 -- Entity built by player.  Evaluate for inserting fuel & ammo.
+---@param event EventData | table
 function fill4me.built_entity(event)
 	local pldata = fill4me.player(event.player_index)
 	if pldata.enable and event.created_entity.valid then
@@ -205,6 +224,10 @@ function fill4me.evaluate_items()
 	end
 end
 
+---@param entity LuaEntity
+---@param player_index integer
+---@param player LuaPlayer?
+---@param pldata table?
 function fill4me.fill_entity(entity, player_index, player, pldata)
 	if pldata == nil then
 		pldata = fill4me.player(player_index)
@@ -212,7 +235,11 @@ function fill4me.fill_entity(entity, player_index, player, pldata)
 	local loadable_entity = fill4me.for_player(pldata, "loadable_entities")[entity.name]
 	if loadable_entity then
 		if player == nil then
-			player = game.get_player(player_index)
+			player = playerFromIndex(player_index)
+		end
+		if player == nil then
+			log("[ERR] fill_entity was unable to find an active player.")
+			return
 		end
 		local unlimited_range = settings.global["fill4me-refill-ignores-range-limit"].value
 		if unlimited_range or player.can_reach_entity(entity) then
@@ -231,10 +258,16 @@ function fill4me.fill_entity(entity, player_index, player, pldata)
 	end
 end
 
+---@param a table
+---@param b table
 function fill4me.fuel_sort_high(a, b)
 	return a.value > b.value
 end
 
+---@param player LuaPlayer
+---@param item_name string
+---@param max_size integer
+---@param ammo_or_fuel string
 function fill4me.getFromInventory(player, item_name, max_size, ammo_or_fuel)
 	local function max_load(pldata, ammo_or_fuel)
 		if ammo_or_fuel == "ammo" then
@@ -263,6 +296,10 @@ function fill4me.getFromInventory(player, item_name, max_size, ammo_or_fuel)
 	return removed
 end
 
+---@param player LuaPlayer
+---@param item_name string
+---@param amount integer
+---@param ammo_or_fuel? any
 function fill4me.returnToInventory(player, item_name, amount, ammo_or_fuel)
 	local pldata = fill4me.player(player.index)
 	local inventory = player.get_main_inventory()
@@ -273,6 +310,8 @@ function fill4me.returnToInventory(player, item_name, amount, ammo_or_fuel)
 	return amount
 end
 
+---@param a table
+---@param b table
 function fill4me.item_dmg_sort_high(a, b)
 	if a.damage == b.damage then
 		return a.craft_value > b.craft_value
@@ -280,6 +319,10 @@ function fill4me.item_dmg_sort_high(a, b)
 	return a.damage > b.damage
 end
 
+-- Not sure which prototype it is we're using here.  Yikes.
+---@param prototype LuaEntityPrototype | LuaItemPrototype
+---@param ammo table
+---@param playerdata table
 local function ammo_radius_is_ok(prototype, ammo, playerdata)
 	if playerdata.ignore_ammo_radius then
 		return true
@@ -289,6 +332,9 @@ local function ammo_radius_is_ok(prototype, ammo, playerdata)
 	return true
 end
 
+---@param entity LuaEntity
+---@param player LuaPlayer
+---@param ammo table
 local function try_ammo_load(entity, player, ammo)
 	local count = fill4me.getFromInventory(player, ammo.name, ammo.max_size, "ammo")
 	if count > 0 then
@@ -306,8 +352,15 @@ local function try_ammo_load(entity, player, ammo)
 	return false
 end
 
+---@param entity LuaEntity
+---@param lent table
+---@param plidx integer
 function fill4me.load_ammo(entity, lent, plidx)
-	local player = game.get_player(plidx)
+	local player = playerFromIndex(plidx)
+	if player == nil then
+		-- Everything here depends on player being legitimate, so abandon early on weirdness.
+		return
+	end
 	local pldata = fill4me.player(plidx)
 	local proto = prototypes.entity[entity.name]
 	if lent.ammo_categories then
@@ -334,6 +387,9 @@ function fill4me.load_ammo(entity, lent, plidx)
 	end
 end
 
+---@param entity LuaEntity
+---@param player LuaPlayer
+---@param fuel table
 local function try_fuel_load(entity, player, fuel)
 	local count = fill4me.getFromInventory(player, fuel.name, fuel.max_size, "fuel")
 	if count > 0 then
@@ -351,9 +407,16 @@ local function try_fuel_load(entity, player, fuel)
 	return false
 end
 
+---@param entity LuaEntity
+---@param lent table
+---@param plidx integer
 function fill4me.load_fuel(entity, lent, plidx)
 	-- Load fuel from player's inventory into the entity.
-	local player = game.get_player(plidx)
+	local player = playerFromIndex(plidx)
+	if player == nil then
+		-- Everything here depends on player being legitimate, so abandon early on weirdness.
+		return
+	end
 	local found_fuel = false
 	for name, t in pairs(lent.fuel_categories) do
 		-- Prevent nil errors when no candidate fuels are available for given entity
@@ -373,6 +436,9 @@ function fill4me.load_fuel(entity, lent, plidx)
 	end
 end
 
+---@param entity LuaEntity
+---@param item_name string
+---@param quantity integer
 function fill4me.loadAmmoInto(entity, item_name, quantity)
 	-- try both car & turret inventories.
 	local inv = entity.get_inventory(defines.inventory.car_ammo)
@@ -386,6 +452,9 @@ function fill4me.loadAmmoInto(entity, item_name, quantity)
 	return 0
 end
 
+---@param entity LuaEntity
+---@param item_name string
+---@param quantity integer
 function fill4me.loadFuelInto(entity, item_name, quantity)
 	local inv = entity.get_inventory(defines.inventory.fuel)
 	local itemstack = { name = item_name, count = quantity }
@@ -395,22 +464,30 @@ function fill4me.loadFuelInto(entity, item_name, quantity)
 	return 0
 end
 
+---@param entity LuaEntity | LuaPlayer
+---@param item_name string
+---@param quantity integer
 function fill4me.loadInto(entity, item_name, quantity)
 	local itemstack = { name = item_name, count = quantity }
 	return entity.insert(itemstack)
 end
 
+---@param event EventData | table
 function fill4me.loadModSettings(event)
 	local gms = settings.global
 	local gs = storage.fill4me
 	if gms['fill4me-maximum-fuel-value'] then
+		---@diagnostic disable-next-line: assign-type-mismatch
 		gs['maximum_values'].fuel = gms['fill4me-maximum-fuel-value'].value
 	end
 	if gms['fill4me-maximum-ammo-value'] then
+		---@diagnostic disable-next-line: assign-type-mismatch
 		gs['maximum_values'].ammo = gms['fill4me-maximum-ammo-value'].value
 	end
 end
 
+---@param plidx integer
+---@param pldata table
 function fill4me.loadModPlayerSettings(plidx, pldata)
 	local gmps = settings.get_player_settings(plidx)
 	if gmps then
@@ -430,6 +507,7 @@ function fill4me.loadModPlayerSettings(plidx, pldata)
 	end
 end
 
+---@param plidx integer
 function fill4me.player(plidx)
 	if not storage.fill4me.players[plidx] then
 		storage.fill4me.players[plidx] = {
@@ -457,6 +535,7 @@ function fill4me.player(plidx)
 	fill4me.try_migrate_player(f4mplayer)
 	return f4mplayer
 end
+---@param f4mplayer table
 function fill4me.try_migrate_player(f4mplayer)
 	if f4mplayer.max_load then
 		f4mplayer.max_fuel_load = f4mplayer.max_load
@@ -471,6 +550,7 @@ function fill4me.try_migrate_player(f4mplayer)
 	end
 end
 
+---@param player_index integer
 function fill4me.reset_player_lists(player_index)
 	local player = storage.fill4me.players[player_index]
 	if player then
@@ -480,6 +560,8 @@ function fill4me.reset_player_lists(player_index)
 	end
 end
 
+---@param player LuaPlayer | table | integer
+---@param section string | integer
 function fill4me.for_player(player, section)
 	-- get the relevent player data for ammo, fuel, etc, or global version.
 	local f4m_player = nil
@@ -503,6 +585,7 @@ function fill4me.for_player(player, section)
 	end
 end
 
+---@param event EventData | table
 function fill4me.script_built_entity(event)
 	if event.created_entity and event.player_index then
 		-- Work around scripts which dispatch a script event and THEN
@@ -511,6 +594,11 @@ function fill4me.script_built_entity(event)
 	end
 end
 
+---@param player LuaPlayer
+---@param entity LuaEntity
+---@param item_name string
+---@param quantity integer
+---@param color? Color | table
 function fill4me.textRemove(player, entity, item_name, quantity, color)
 	local pos = entity.position
 	local pldata = fill4me.player(player.index)
@@ -524,9 +612,14 @@ function fill4me.textRemove(player, entity, item_name, quantity, color)
 	})
 end
 
+---@param plidx integer
 function fill4me.toggle(plidx)
 	local pldata = fill4me.player(plidx)
-	local player = game.get_player(plidx)
+	local player = playerFromIndex(plidx)
+	if player == nil then
+		log("[ERR] Unable to find player to toggle Fill4Me")
+		return
+	end
 	pldata.enable = not pldata.enable
 	
 	--fill4me_guib.reset_button_sprite_for(plidx)
@@ -539,16 +632,23 @@ function fill4me.toggle(plidx)
 	return pldata.enable
 end
 
+---@param event EventData | table
 function fill4me.on_lua_shortcut(event)
 	if event.prototype_name == "fill4me-shortcut-toggle" then
 		fill4me.toggle(event.player_index)
 	end
 end
 
+---@param plidx integer
+---@param set_to boolean
 function fill4me.set_ignore_ammo_radius(plidx, set_to)
-	local player = game.get_player(plidx)
+	local player = playerFromIndex(plidx)
+	if player == nil then
+		return
+	end
 	local pldata = fill4me.player(plidx)
 	pldata.ignore_ammo_radius = set_to
+
 	if pldata.ignore_ammo_radius then
 		player.print({'fill4me.prefix', {'fill4me.ammo_radius_ignored'}})
 	else

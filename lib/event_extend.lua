@@ -75,6 +75,7 @@ require 'stdlib/event/event'
 
 kevents = {on_next_tick = {}}
 
+---@param event EventData | table
 function event_on_next_tick(event)
 	if kevents and #kevents.on_next_tick > 0 then
 		-- clone and wipe the on_next_tick list, in case we generate a new
@@ -89,6 +90,8 @@ function event_on_next_tick(event)
 	end
 end
 
+---@param in_func function
+---@param in_params ... any
 function Event.on_next_tick(in_func, in_params)
 	table.insert(kevents.on_next_tick, {
 		func = in_func,

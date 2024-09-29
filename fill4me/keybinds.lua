@@ -35,15 +35,17 @@ require 'lib/event_extend'
 
 f4m_keybind = {}
 
+---@param event EventData | table
 function f4m_keybind.re_up(event)
     -- Get entity under cursor, then try and load it.
-    local player = game.get_player(event.player_index)
+    local player = playerFromIndex(event.player_index)
     local entity = player.selected
     if entity then
 		fill4me.fill_entity(entity, event.player_index, player, nil)
     end
 end
 
+---@param event EventData | table
 function f4m_keybind.enable(event)
 	fill4me.toggle(event.player_index)
 end

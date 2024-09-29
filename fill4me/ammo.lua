@@ -90,12 +90,18 @@ end
 --
 -- Damage
 --
+---@param action TriggerItem | TriggerDelivery
+---@param stack_names string[]
 function Ammo.damage_from_action(action, stack_names)
 	local damage = 0
 	if action.action_delivery then
 		for _, ad in pairs(action.action_delivery) do
 			local multiplier = 1
+			-- It's derivatives of TriggerItem we're interested in, and those
+			-- derivatives will have 'radius' defined.
+			---@diagnostic disable-next-line: undefined-field
 			if action.radius then
+				---@diagnostic disable-next-line: undefined-field
 				multiplier = action.radius * action.radius * math.pi
 			end
 			damage = damage + Ammo.delivery_damage(ad, stack_names) * multiplier
@@ -104,6 +110,8 @@ function Ammo.damage_from_action(action, stack_names)
 	return damage
 end
 
+---@param actionset TriggerItem[]
+---@param stack_names string[]
 function Ammo.damage_from_actions(actionset, stack_names)
 
 	local damage = 0
@@ -113,6 +121,8 @@ function Ammo.damage_from_actions(actionset, stack_names)
 	return damage
 end
 
+---@param entity_name string
+---@param stack_names string[]
 function Ammo.entity_attack_damage(entity_name, stack_names)
 	-- before adding this to the result, check that it's not a repeating entity.
 	-- Note, clone the table, as we can encounter the same effect down the
@@ -137,6 +147,10 @@ function Ammo.entity_attack_damage(entity_name, stack_names)
 	return damage
 end
 
+-- The action_delivery (ad) of this has a lot of potential subclasses, all of which are in C,
+-- so trying to map them to Lua is ... messy.  Just let `ad` be anything then.
+---@param ad any
+---@param stack_names string[]
 function Ammo.delivery_damage(ad, stack_names)
 	damage = 0
 	if ad.type == 'instant' then
@@ -164,6 +178,8 @@ end
 --
 -- Radius
 --
+---@param action TriggerItem | TriggerDelivery | any
+---@param stack_names string[]
 function Ammo.radius_from_action(action, stack_names)
 	local radius = 0
 	if action.action_delivery then
@@ -177,6 +193,8 @@ function Ammo.radius_from_action(action, stack_names)
 	return radius
 end
 
+---@param actionset TriggerItem[]
+---@param stack_names string[]
 function Ammo.radius_from_actions(actionset, stack_names)
 	local radius = 0
 	for _, act in pairs(actionset) do
@@ -185,6 +203,8 @@ function Ammo.radius_from_actions(actionset, stack_names)
 	return radius
 end
 
+---@param entity_name string
+---@param stack_names string[]
 function Ammo.radius_from_entity(entity_name, stack_names)
 	-- before adding this to the result, check that it's not
 	-- a repeating entry of one we've done.

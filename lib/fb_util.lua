@@ -5,21 +5,29 @@ These are 'common use' functions
 Tick conversion originates from ExplosiveGamings's mod.
 --]]
 
+---@return integer
 function ticksPerHour()
 	return 216000*game.speed
 end
+---@return integer
 function ticksPerMin()
 	return 3600*game.speed
 end
+---@param tick integer
+---@return integer
 function ticktohour (tick)
     local hour = math.floor(tick/ticksPerHour())
     return hour
 end
+---@param tick integer
+---@return integer
 function ticktominutes (tick)
   	local minutes = math.floor(tick/ticksPerMin())
     return minutes
 end
 
+---@param tick integer
+---@return table
 function tick2time(tick)
 	-- returns hour & min as table
 	local tph = ticksPerHour()
@@ -34,6 +42,9 @@ function tick2time(tick)
 	}
 end
 
+---@param array any[]
+---@param value any
+---@return boolean
 function arr_contains(array, value)
 	for idx, val in pairs(array) do
 		if val == value then
@@ -42,6 +53,8 @@ function arr_contains(array, value)
 	end
 	return false
 end
+---@param array any[]
+---@param value any
 function arr_remove(array, value)
 	for idx=#array, 1, -1 do
 		if array[idx] == value then
@@ -50,13 +63,15 @@ function arr_remove(array, value)
 	end
 end
 
+---@param text string
+---@return string[]
 function parseParams(text)
 	if not text then
 		return {}
 	end
 	-- from https://stackoverflow.com/questions/28664139/lua-split-string-into-words-unless-quoted
 	local parts = {}
-	local spat, epat, buf, quoted = [=[^(['"])]=], [=[(['"])$]=]
+	local spat, epat, buf, quoted = [=[^(['"])]=], [=[(['"])$]=], nil, nil
 	for str in text:gmatch("%S+") do
 		local squoted = str:match(spat)
 		local equoted = str:match(epat)
@@ -80,6 +95,8 @@ function parseParams(text)
 	return parts
 end
 
+---@param name string
+---@return LuaPlayer?
 function getPlayerNamed(name)
 	--[[
 	game.players[....] is a table lookup by either index or name.
@@ -103,6 +120,8 @@ function getPlayerNamed(name)
 	return nil
 end
 
+---@param index integer
+---@return LuaPlayer?
 function playerFromIndex(index)
 	--[[
 	game.players lookups will apparently search the entire array for a match.
@@ -112,18 +131,27 @@ function playerFromIndex(index)
 	and if not, find the player with the correct index by iterating through
 	game.players
 	-- ]]
+
 	local player = game.players[index]
-	if player.index ~= index then
-		player = nil
-		for idx, gplayer in pairs(game.players) do
-			if gplayer.index == index then
-				return gplayer
-			end
+	if player == nil then
+		return nil
+	end
+	if player.index == index then
+		return player
+	end
+	for idx, gplayer in pairs(game.players) do
+		if gplayer.index == index then
+			return gplayer
 		end
 	end
-	return player
+	log("[ERR] Unable to find player by index.  All matching possibilities failed.")
+	return nil
 end
 
+---@param entityName string
+---@param player LuaPlayer
+---@param radius number
+---@return LuaEntity?
 function createEntityNearPlayer(entityName, player, radius)
 	--player.print("DEBUG: Creating '"..entityName.."' near '"..player.name.."'")
 	local entity = nil

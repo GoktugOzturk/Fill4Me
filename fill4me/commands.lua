@@ -34,8 +34,13 @@ require 'lib/fb_util'
 
 fill4me_cmd = {}
 
+---@param event EventData | table
 function fill4me_cmd.exclude(event)
 	local player = playerFromIndex(event.player_index)
+	if player == nil then
+		log("[ERR] unable to find player")
+		return
+	end
 	local f4mplayer = fill4me.player(player.index)
 	if event.parameter then
 		local fuel_list = fill4me.for_player(player.index, "fuels")
@@ -61,9 +66,13 @@ function fill4me_cmd.exclude(event)
 	end
 end
 
+---@param event EventData | table
 function fill4me_cmd.include(event)
 	local player = playerFromIndex(event.player_index)
-	local f4mplayer = fill4me.player(player.index)
+	if player == nil then
+		log("[ERR] unable to find player")
+		return
+	end
 	if event.parameter then
 		local fuel_list = storage.fill4me.fuels
 		local cat = nil
@@ -100,8 +109,13 @@ function fill4me_cmd.include(event)
 	end
 end
 
+---@param event EventData | table
 function fill4me_cmd.max_percent(event)
 	local player = playerFromIndex(event.player_index)
+	if player == nil then
+		log("[ERR] unable to find player")
+		return
+	end
 	if event.parameter then
 		local percent = tonumber(event.parameter)
 		if percent and percent > 0 and percent <= 100 then
@@ -123,8 +137,13 @@ function fill4me_cmd.max_percent(event)
 	end
 end
 
+---@param event EventData | table
 function fill4me_cmd.list_fuel(event)
-	local player = game.get_player(event.player_index)
+	local player = playerFromIndex(event.player_index)
+	if player == nil then
+		log("[ERR] unable to find player")
+		return
+	end
 	local fuel_list = fill4me.for_player(player.index, "fuels")
 	for index, name in pairs(Fuel.categories()) do
 		local fuels = {}
@@ -135,27 +154,36 @@ function fill4me_cmd.list_fuel(event)
 	end
 end
 
+---@param event EventData | table
 function fill4me_cmd.list_all_fuel(event)
-	local player = game.get_player(event.player_index)
+	local player = playerFromIndex(event.player_index)
 	local fuel_list = storage.fill4me.fuels
 	for index, name in pairs(Fuel.categories()) do
 		local fuels = {}
 		for _, fuel in pairs(fuel_list[name]) do
 			table.insert(fuels, fuel.name)
 		end
-		player.print({'', name, ': ', serpent.line(fuels) })
+		if player then
+			player.print({'', name, ': ', serpent.line(fuels) })
+		end
 	end
 end
 
+---@param event EventData | table
 function fill4me_cmd.reset_me(event)
 	fill4me.reset_player_from_event(event)
-	player.print({'fill4me.prefix', {'fill4me.cmd.reset'}})
+	local player = playerFromIndex(event.player_index)
+	if player ~= nil then
+		player.print({'fill4me.prefix', {'fill4me.cmd.reset'}})
+	end
 end
 
+---@param event EventData | table
 function fill4me_cmd.toggle(event)
 	fill4me.toggle(event.player_index)
 end
 
+---@param event EventData | table
 function fill4me_cmd.toggle_ignore_ammo_radius(event)
 	fill4me.toggle_ignore_ammo_radius(event.player_index)
 end
@@ -173,15 +201,17 @@ commands.add_command('f4m.include', {'fill4me.cmd.include'}, fill4me_cmd.include
 -- Debug commands
 -- 
 
+---@param event EventData | table
 function fill4me_cmd.debug(event)
-	local player = game.get_player(event.player_index)
+	local player = playerFromIndex(event.player_index)
 	local print = game.print
 	if player then print = player.print end
 	print(serpent.line(storage.fill4me))
 end
 
+---@param event EventData | table
 function fill4me_cmd.debug_fuel_type(event)
-	local player = game.get_player(event.player_index)
+	local player = playerFromIndex(event.player_index)
 	local print = game.print
 	if player then print = player.print end
 	if event.parameter then
@@ -192,8 +222,9 @@ function fill4me_cmd.debug_fuel_type(event)
 	end
 end
 
+---@param event EventData | table
 function fill4me_cmd.debug_ammo_type(event)
-	local player = game.get_player(event.player_index)
+	local player = playerFromIndex(event.player_index)
 	local print = game.print
 	if player then print = player.print end
 	if event.parameter then
@@ -215,8 +246,9 @@ function fill4me_cmd.debug_ammo_type(event)
 	end
 end
 
+---@param event EventData | table
 function fill4me_cmd.debug_entity(event)
-	local player = game.get_player(event.player_index)
+	local player = playerFromIndex(event.player_index)
 	local print = game.print
 	if player then print = player.print end
 	if event.parameter then
@@ -227,8 +259,9 @@ function fill4me_cmd.debug_entity(event)
 	end
 end
 
+---@param event EventData | table
 function fill4me_cmd.debug_global(event)
-	local player = game.get_player(event.player_index)
+	local player = playerFromIndex(event.player_index)
 	local print = game.print
 	if player then 
 		print = player.print
@@ -236,8 +269,9 @@ function fill4me_cmd.debug_global(event)
 	print(serpent.line(storage.fill4me))
 end
 
+---@param event EventData | table
 function fill4me_cmd.debug_player(event)
-	local player = game.get_player(event.player_index)
+	local player = playerFromIndex(event.player_index)
 	local print = game.print
 	if player then
 		print = player.print
@@ -252,7 +286,7 @@ function fill4me_cmd.debug_player(event)
 	print(serpent.line(pldata))
 end
 
-if true == false then -- DEBUG functionality.
+if true then -- == false then -- DEBUG functionality.
 	commands.add_command('f4m.debug', '', fill4me_cmd.debug)
 	commands.add_command('f4m.debug.ammo', '', fill4me_cmd.debug_ammo_type)
 	commands.add_command('f4m.debug.fuel', '', fill4me_cmd.debug_fuel_type)
