@@ -170,8 +170,8 @@ end
 ---@param event EventData | table
 function fill4me.built_entity(event)
 	local pldata = fill4me.player(event.player_index)
-	if pldata.enable and event.created_entity.valid then
-		local entity = event.created_entity
+	if pldata and pldata.enable and event.entity and event.entity.valid then
+		local entity = event.entity
 		fill4me.fill_entity(entity, event.player_index, nil, pldata)
 	end
 end
@@ -587,9 +587,11 @@ end
 
 ---@param event EventData | table
 function fill4me.script_built_entity(event)
-	if event.created_entity and event.player_index then
+	if event.entity and event.player_index then
 		-- Work around scripts which dispatch a script event and THEN
 		-- insert fuel/ammo into the entity of interest.
+		-- Only functions if script included player index as part of event.
+		-- Which might be a snowballs chance in hell.
 		Event.on_next_tick(fill4me.built_entity, event)
 	end
 end
