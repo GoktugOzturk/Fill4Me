@@ -266,9 +266,10 @@ end
 
 ---@param player LuaPlayer
 ---@param item_name string
+---@param quality string
 ---@param max_size integer
 ---@param ammo_or_fuel string
-function fill4me.getFromInventory(player, item_name, max_size, ammo_or_fuel)
+function fill4me.getFromInventory(player, item_name, quality, max_size, ammo_or_fuel)
 	local function max_load(pldata, ammo_or_fuel)
 		if ammo_or_fuel == "ammo" then
 			return pldata.max_ammo_load
@@ -286,12 +287,12 @@ function fill4me.getFromInventory(player, item_name, max_size, ammo_or_fuel)
 	if not inventory then
 		return 0
 	end
-	local available = inventory.get_item_count(item_name)
+	local available = inventory.get_item_count({name=item_name, quality=quality})
 	local removed = 0
 	if available > 0 then
 		removed = math.min(max_load(pldata, ammo_or_fuel), math.ceil(available*max_load_percent(pldata, ammo_or_fuel)))
 		removed = math.min(removed, available)
-		inventory.remove({name=item_name, count=removed})
+		inventory.remove({name=item_name, quality=quality, count=removed})
 	end
 	return removed
 end
@@ -336,17 +337,17 @@ end
 ---@param player LuaPlayer
 ---@param ammo table
 local function try_ammo_load(entity, player, ammo)
-	local count = fill4me.getFromInventory(player, ammo.name, ammo.max_size, "ammo")
+	local count = fill4me.getFromInventory(player, ammo.name, ammo.quality, ammo.max_size, "ammo")
 	if count > 0 then
-		local loaded = fill4me.loadAmmoInto(entity, ammo.name, count)
+		local loaded = fill4me.loadAmmoInto(entity, ammo.name, ammo.quality, count)
 		if loaded > 0 then
-			fill4me.textRemove(player, entity, ammo.i18n, loaded)
+			fill4me.textRemove(player, entity, ammo, loaded)
 			if loaded < count then
-				fill4me.loadInto(player, ammo.name, count - loaded)
+				fill4me.loadInto(player, ammo.name, ammo.quality, count - loaded)
 			end
 			return true
 		else
-			fill4me.returnToInventory(player, ammo.name, count, "ammo")
+			fill4me.returnToInventory(player, ammo.name, ammo.quality, count, "ammo")
 		end
 	end
 	return false
@@ -391,17 +392,17 @@ end
 ---@param player LuaPlayer
 ---@param fuel table
 local function try_fuel_load(entity, player, fuel)
-	local count = fill4me.getFromInventory(player, fuel.name, fuel.max_size, "fuel")
+	local count = fill4me.getFromInventory(player, fuel.name, fuel.quality, fuel.max_size, "fuel")
 	if count > 0 then
-		loaded = fill4me.loadFuelInto(entity, fuel.name, count)
+		loaded = fill4me.loadFuelInto(entity, fuel.name, fuel.quality, count)
 		if loaded > 0 then
-			fill4me.textRemove(player, entity, fuel.i18n, loaded)
+			fill4me.textRemove(player, entity, fuel, loaded)
 			if loaded < count then
-				fill4me.loadInto(player, fuel.name, count - loaded)
+				fill4me.loadInto(player, fuel.name, fuel.quality, count - loaded)
 			end
 			return true
 		else
-			fill4me.returnToInventory(player, fuel.name, count, "fuel")
+			fill4me.returnToInventory(player, fuel.name, fuel.quality, count, "fuel")
 		end
 	end
 	return false
@@ -439,10 +440,10 @@ end
 ---@param entity LuaEntity
 ---@param item_name string
 ---@param quantity integer
-function fill4me.loadAmmoInto(entity, item_name, quantity)
+function fill4me.loadAmmoInto(entity, item_name, quality, quantity)
 	-- try both car & turret inventories.
 	local inv = entity.get_inventory(defines.inventory.car_ammo)
-	local itemstack = { name = item_name, count = quantity }
+	local itemstack = { name = item_name, quality = quality, count = quantity }
 	if not (inv and inv.valid) then
 		inv = entity.get_inventory(defines.inventory.turret_ammo)
 	end
@@ -455,9 +456,9 @@ end
 ---@param entity LuaEntity
 ---@param item_name string
 ---@param quantity integer
-function fill4me.loadFuelInto(entity, item_name, quantity)
+function fill4me.loadFuelInto(entity, item_name, quality, quantity)
 	local inv = entity.get_inventory(defines.inventory.fuel)
-	local itemstack = { name = item_name, count = quantity }
+	local itemstack = { name = item_name, quality = quality, count = quantity }
 	if inv and inv.valid and inv.can_insert(itemstack) then
 		return inv.insert(itemstack)
 	end
@@ -467,8 +468,8 @@ end
 ---@param entity LuaEntity | LuaPlayer
 ---@param item_name string
 ---@param quantity integer
-function fill4me.loadInto(entity, item_name, quantity)
-	local itemstack = { name = item_name, count = quantity }
+function fill4me.loadInto(entity, item_name, quality, quantity)
+	local itemstack = { name = item_name, quality = quality, count = quantity }
 	return entity.insert(itemstack)
 end
 
@@ -601,14 +602,21 @@ end
 ---@param item_name string
 ---@param quantity integer
 ---@param color? Color | table
-function fill4me.textRemove(player, entity, item_name, quantity, color)
+function fill4me.textRemove(player, entity, fuel_or_ammo_entry, quantity, color)
 	local pos = entity.position
 	local pldata = fill4me.player(player.index)
 	pos.x = pos.x + 0.75
 	pos.y = pos.y - 0.5
 	local textcolor = color or {r=1, g=1, b=1, a=1}
+	local itemText = "[item=" .. fuel_or_ammo_entry.name .. "]";
+	local qualityText = ""
+	if fuel_or_ammo_entry.quality_level > 0 then
+		itemText = "[item=" .. fuel_or_ammo_entry.name .. ", quality=" .. fuel_or_ammo_entry.quality .. "]";
+		qualityText = fuel_or_ammo_entry.quality_i18n
+	end
 	player.create_local_flying_text({
-		text = {'fill4me.removed', quantity, item_name},
+		text = { 'fill4me.removed', quantity, itemText, fuel_or_ammo_entry.i18n, qualityText },
+		icon = fuel_or_ammo_entry.name,
 		position = pos,
 		color = textcolor,
 	})

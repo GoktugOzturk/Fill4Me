@@ -56,18 +56,25 @@ function Ammo.list()
 		if proto and proto.ammo_category then
 			local ammotype = proto.get_ammo_type()
 			if ammotype and ammotype.action then
-				local damage = Ammo.damage_from_actions(ammotype.action, {})
-				local radius = Ammo.radius_from_actions(ammotype.action, {})
-				local data = {
-					name = proto.name,
-					category = proto.ammo_category.name,
-					craft_value = item_craft_values[proto.name] or 0,
-					damage = damage,
-					i18n = proto.localised_name,
-					max_size = math.ceil(proto.stack_size / 2),
-					radius = radius,
-				}
-				table.insert(ammolist, data)
+				-- evaluate various qualities as well.
+				for _, qproto in pairs(prototypes.quality) do
+					local multiplier = qproto.level * 0.3
+					local damage = Ammo.damage_from_actions(ammotype.action, {})
+					local radius = Ammo.radius_from_actions(ammotype.action, {})
+					local data = {
+						name = proto.name,
+						quality = qproto.name,
+						quality_level = qproto.level,
+						category = proto.ammo_category.name,
+						craft_value = item_craft_values[proto.name] or 0,
+						damage = damage + damage * multiplier,
+						i18n = proto.localised_name, 
+						quality_i18n = qproto.localised_name,
+						max_size = math.ceil(proto.stack_size / 2),
+						radius = radius,
+					}
+					table.insert(ammolist, data)
+					end
 			elseif ammotype then
 				log("Warning: Ammotype without action: " .. serpent.block(ammotype))
 			end

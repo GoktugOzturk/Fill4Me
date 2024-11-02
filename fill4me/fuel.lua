@@ -54,13 +54,19 @@ function Fuel.list()
 	local fuellist = {}
 	for name, proto in pairs(prototypes.item) do
 		if proto.fuel_category then
-			table.insert(fuellist, {
-				name = proto.name,
-				category = proto.fuel_category,
-				i18n = proto.localised_name,
-				max_size = math.ceil(proto.stack_size / 2),
-				value = proto.fuel_value,
-			})
+			for _, qproto in pairs(prototypes.quality) do
+				local multiplier = qproto.level * 0.3
+				table.insert(fuellist, {
+					name = proto.name,
+					quality = qproto.name,
+					quality_level = qproto.level,
+					category = proto.fuel_category,
+					i18n = proto.localised_name,
+					quality_i18n = qproto.localised_name,
+					max_size = math.ceil(proto.stack_size / 2),
+					value = proto.fuel_value + proto.fuel_value * multiplier,
+				})
+			end
 		end
 	end
 	return fuellist
