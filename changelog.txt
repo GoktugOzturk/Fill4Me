@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.12.0
+Date: Nov 2, 2024
+  Features:
+    - Adds quality handling for ammo & fuel.  Still uses the "highest value" version of the ammo or fuel in question, which means (in the vanilla game) that yellow firearm-magazines at quality 5 are preferred over red ones with quality 2.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.11.0
 Date: Oct 14, 2024
   Features:
