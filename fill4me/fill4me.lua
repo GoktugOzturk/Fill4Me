@@ -299,15 +299,16 @@ end
 
 ---@param player LuaPlayer
 ---@param item_name string
+---@param quality string
 ---@param amount integer
 ---@param ammo_or_fuel? any
-function fill4me.returnToInventory(player, item_name, amount, ammo_or_fuel)
+function fill4me.returnToInventory(player, item_name, quality, amount, ammo_or_fuel)
 	local pldata = fill4me.player(player.index)
 	local inventory = player.get_main_inventory()
 	if not inventory then
 		return 0
 	end
-	inventory.insert({name=item_name, count=amount})
+	inventory.insert({name=item_name, quality=quality, count=amount})
 	return amount
 end
 

@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.12.1
+Date: Nov 5, 2024
+  Changes:
+    - Fix an issue with failures to insert fuel/ammo, which would normally cause the fuel/ammo to be returned to the player inventory.  (Caused in previous patch to handle quality.)
+
+---------------------------------------------------------------------------------------------------
 Version: 0.12.0
 Date: Nov 2, 2024
   Features:
