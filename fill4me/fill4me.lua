@@ -158,32 +158,51 @@ local function csv_string_to_list(str)
 	return items
 end
 
+--- Remove every entry named `item_name` from the player's per-player `section`
+--- ("fuels" or "ammos"). With quality, one item name maps to several entries
+--- (one per quality level), so we iterate in reverse and strip all of them in
+--- a single pass -- otherwise table.remove() shifts indices and leaves some
+--- quality variants behind (the cause of "blacklist still adds it").
+---@param plidx integer
+---@param section string
+---@param item_name string
+local function exclude_named_from_section(plidx, section, item_name)
+	local sectiondata = fill4me.for_player(plidx, section)
+	if not sectiondata then
+		return
+	end
+	for _, entries in pairs(sectiondata) do
+		for index = #entries, 1, -1 do
+			if entries[index].name == item_name then
+				table.remove(entries, index)
+			end
+		end
+	end
+end
+
 --- Function to apply blacklist settings to current player
 --- @param plidx integer
 function fill4me.load_blacklist(plidx)
-	-- Reset player F4M filters; get new list; add individually to exclude list.
 	local player = playerFromIndex(plidx)
 	if player == nil then
 		log("[ERR] Unable to find player for `load_blacklist()`")
 		return
 	end
+	-- Rebuild the player's fuel/ammo lists from the global defaults, then strip
+	-- every blacklisted item (all quality variants) back out of them.
+	fill4me.reset_player_from_event({ player_index = plidx })
+
 	---@diagnostic disable-next-line: param-type-mismatch
 	local exclusion_fuel = csv_string_to_list(player.mod_settings["fill4me-blacklist-fuel"].value)
-	local event = { player_index = plidx }
-	fill4me.reset_player_from_event(event)
-	
 	for _, fuel in pairs(exclusion_fuel) do
-		event.parameter = fuel
-		fill4me_cmd.exclude(event)
+		exclude_named_from_section(plidx, "fuels", fuel)
 	end
-	-- Concept to do the same for ammo, but there's no fill4me_cmd for it yet.
-	--[[
+
+	---@diagnostic disable-next-line: param-type-mismatch
 	local exclusion_ammo = csv_string_to_list(player.mod_settings["fill4me-blacklist-ammo"].value)
 	for _, ammo in pairs(exclusion_ammo) do
-		new_event.parameter = ammo
-		fill4me_cmd.exclude(new_event)
+		exclude_named_from_section(plidx, "ammos", ammo)
 	end
-	]]--
 end
 
 -- Entity built by player.  Evaluate for inserting fuel & ammo.

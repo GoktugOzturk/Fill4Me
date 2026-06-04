@@ -158,6 +158,23 @@ function fill4me_cmd.list_fuel(event)
 end
 
 ---@param event EventData | table
+function fill4me_cmd.list_ammo(event)
+	local player = playerFromIndex(event.player_index)
+	if player == nil then
+		log("[ERR] unable to find player")
+		return
+	end
+	local ammo_list = fill4me.for_player(player.index, "ammos")
+	for _, name in pairs(Ammo.categories()) do
+		local ammos = {}
+		for _, ammo in pairs(ammo_list[name] or {}) do
+			table.insert(ammos, ammo.name)
+		end
+		player.print({'', name, ': ', serpent.line(ammos) })
+	end
+end
+
+---@param event EventData | table
 function fill4me_cmd.list_all_fuel(event)
 	local player = playerFromIndex(event.player_index)
 	local fuel_list = storage.fill4me.fuels
@@ -195,6 +212,7 @@ commands.add_command('f4m.toggle', {'fill4me.gui.enable_tooltip'}, fill4me_cmd.t
 commands.add_command('f4m.max_percent', {'fill4me.cmd.help_max_percent'}, fill4me_cmd.max_percent)
 commands.add_command('f4m.ignore_ammo_radius', {'fill4me.cmd.ignore_ammo_radius'}, fill4me_cmd.toggle_ignore_ammo_radius)
 commands.add_command('f4m.list_fuel',  {'fill4me.cmd.list_fuel'}, fill4me_cmd.list_fuel)
+commands.add_command('f4m.list_ammo',  {'fill4me.cmd.list_ammo'}, fill4me_cmd.list_ammo)
 commands.add_command('f4m.list_all_fuel',  {'fill4me.cmd.list_all_fuel'}, fill4me_cmd.list_all_fuel)
 commands.add_command('f4m.reset_me',  {'fill4me.cmd.reset_me'}, fill4me_cmd.reset_me)
 commands.add_command('f4m.exclude', {'fill4me.cmd.exclude'}, fill4me_cmd.exclude)

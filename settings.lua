@@ -70,13 +70,12 @@ data:extend({
 		default_value = "",
 		order = "fill4me-2",
 	},
-	--[[
 	{
-		type = "string-setting",
 		name = "fill4me-blacklist-ammo",
+		type = "string-setting",
+		allow_blank = true,
 		setting_type = "runtime-per-user",
-		default_value = " ",
+		default_value = "",
 		order = "fill4me-3",
 	},
-	]]--
 })

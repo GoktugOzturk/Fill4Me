@@ -136,7 +136,10 @@ function Ammo.entity_attack_damage(entity_name, stack_names)
 	-- multiple effects that an entity can have.
 	-- Space Exploration has plague loop (rocket -> cloud -> wave -> cloud -> wave)
 	if arr_contains(stack_names, entity_name) then
-		game.print({"fill4me.loop_in_ammo_damage_calc", stack_names[1]})
+		-- Log instead of game.print: this is an informational note about a
+		-- recursive ammo effect (e.g. modded chained projectiles); loop
+		-- detection already handles it safely, so don't spam every player.
+		log("Fill4Me encountered a loop while calculating ammo damage: " .. tostring(stack_names[1]))
 		return 0
 	end
 	table.insert(stack_names, entity_name)
@@ -218,7 +221,8 @@ function Ammo.radius_from_entity(entity_name, stack_names)
 	-- Space Exploration does this with plague
 	-- (rocket -> cloud -> wave -> cloud -> wave)
 	if arr_contains(stack_names, entity_name) then
-		game.print({"fill4me.loop_in_ammo_radius_calc", stack_names[1]})
+		-- See note in damage calc above: log rather than spam every player.
+		log("Fill4Me encountered a loop while calculating ammo radius: " .. tostring(stack_names[1]))
 		return 0
 	end
 	table.insert(stack_names, entity_name)

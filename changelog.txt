@@ -1,4 +1,14 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.0.2
+Date: Jun 4, 2026
+  Bugfixes:
+    - Fuel blacklist now works with a single entry. Previously, with quality enabled, one item name mapped to several entries (one per quality) and only some were removed, so blacklisted fuels like wood or spoilage were still inserted. (Reported on the mod portal; workaround had been to list each item twice.)
+  Features:
+    - Added an ammo blacklist setting, mirroring the fuel blacklist.
+    - Added the "/f4m.list_ammo" command to list loadable ammunition (companion to /f4m.list_fuel).
+  Changes:
+    - Loop-detection notices during ammo damage/radius calculation (seen with some modded recursive projectiles) now go to the log instead of being printed to every player in chat.
+---------------------------------------------------------------------------------------------------
 Version: 1.0.1
 Date: Jun 4, 2026
   Bugfixes:
