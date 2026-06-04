@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.0.1
+Date: Jun 4, 2026
+  Bugfixes:
+    - Fix the toolbar toggle button showing "off" when the mod is added to an existing save. The mod is enabled by default, so the first click silently disabled it; the button now reflects the actual enabled state on load.
+---------------------------------------------------------------------------------------------------
 Version: 1.0.0
 Date: Jun 4, 2026
   Features:

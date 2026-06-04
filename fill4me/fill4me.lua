@@ -81,6 +81,12 @@ function fill4me.initMod(event)
 		fill4me.reset_players_loadables()
 		storage.fill4me.initialized = true
 	end
+	-- Sync each existing player's shortcut button to their real enable state.
+	-- on_player_created covers brand-new players, but when the mod is added to
+	-- an existing save that event never fires for current players, leaving the
+	-- button visually "off" while the mod is actually enabled -- so the first
+	-- click would silently turn the working mod off instead of on.
+	fill4me.sync_player_shortcuts()
 end
 ---@param event EventData | table
 function fill4me.initPlayer(event)
@@ -88,6 +94,14 @@ function fill4me.initPlayer(event)
 	local player = playerFromIndex(event.player_index)
 	if player then
 		player.set_shortcut_toggled("fill4me-shortcut-toggle", true)
+	end
+end
+--- Make every existing player's shortcut button reflect their actual enable
+--- state. Safe to call when no players exist yet (e.g. on_init): it's a no-op.
+function fill4me.sync_player_shortcuts()
+	for _, player in pairs(game.players) do
+		local pldata = fill4me.player(player.index)
+		player.set_shortcut_toggled("fill4me-shortcut-toggle", pldata.enable)
 	end
 end
 ---@param event EventData | table
