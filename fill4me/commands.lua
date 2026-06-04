@@ -46,7 +46,10 @@ function fill4me_cmd.exclude(event)
 		local fuel_list = fill4me.for_player(player.index, "fuels")
 		local removed = false
 		for name, data in pairs(fuel_list) do
-			for index, fuel in pairs(fuel_list[name]) do
+			-- Iterate in reverse so table.remove() doesn't shift entries we
+			-- haven't checked yet (which would skip duplicates).
+			for index = #data, 1, -1 do
+				local fuel = data[index]
 				if fuel.name == event.parameter then
 					table.remove(data, index)
 					player.print({'fill4me.cmd.exclude.excluding', fuel.i18n})

@@ -95,6 +95,12 @@ function fill4me.reInitMod(event)
 	if storage.fill4me then
 		storage.fill4me.initialized = false
 	end
+	-- Item prices can change when mods are added/removed/updated, so drop the
+	-- cached production-score price list and let it rebuild on re-evaluation.
+	-- Otherwise ammo craft_value (the damage tiebreaker) goes stale.
+	if storage.fill4me_internal then
+		storage.fill4me_internal.price_list = nil
+	end
 	fill4me.initMod(event)
 end
 ---@param event EventData | table
@@ -131,7 +137,7 @@ end
 --- split string by comma (ignores whitespace) to table/list
 ---@param str string
 local function csv_string_to_list(str)
-	items = {}
+	local items = {}
 	for item in string.gmatch(str,'[^,%s]+') do
 		table.insert(items,item)
 	end
@@ -395,7 +401,7 @@ end
 local function try_fuel_load(entity, player, fuel)
 	local count = fill4me.getFromInventory(player, fuel.name, fuel.quality, fuel.max_size, "fuel")
 	if count > 0 then
-		loaded = fill4me.loadFuelInto(entity, fuel.name, fuel.quality, count)
+		local loaded = fill4me.loadFuelInto(entity, fuel.name, fuel.quality, count)
 		if loaded > 0 then
 			fill4me.textRemove(player, entity, fuel, loaded)
 			if loaded < count then
@@ -423,7 +429,7 @@ function fill4me.load_fuel(entity, lent, plidx)
 	for name, t in pairs(lent.fuel_categories) do
 		-- Prevent nil errors when no candidate fuels are available for given entity
 		-- This will fall through to the next available type of fuel.
-		fuel_names = fill4me.for_player(plidx, "fuels")[name]
+		local fuel_names = fill4me.for_player(plidx, "fuels")[name]
 		if fuel_names then
 			for _, fuel in pairs(fuel_names) do
 				if try_fuel_load(entity, player, fuel) then

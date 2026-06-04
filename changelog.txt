@@ -1,4 +1,15 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.0.0
+Date: Jun 4, 2026
+  Features:
+    - First stable (1.0.0) release.
+    - Target Factorio 2.1 (now requires base >= 2.1).
+  Changes:
+    - Fix accidental global variables (missing 'local') on the fuel-load path and in ammo damage/radius calculation.
+    - Invalidate the cached item price list on configuration changes so ammo ranking stays correct after mods are added or removed.
+    - Fix the f4m.exclude command skipping duplicate fuel entries due to table modification during iteration.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.12.1
 Date: Nov 5, 2024
   Changes:

@@ -159,7 +159,7 @@ end
 ---@param ad any
 ---@param stack_names string[]
 function Ammo.delivery_damage(ad, stack_names)
-	damage = 0
+	local damage = 0
 	if ad.type == 'instant' then
 		if ad.target_effects then
 			for _, te in pairs(ad.target_effects) do
@@ -237,7 +237,7 @@ function Ammo.radius_from_entity(entity_name, stack_names)
 end
 
 function Ammo.radius_of_delivery(adelivery, stack_names)
-	radius = 0
+	local radius = 0
 	if adelivery.type == 'instant' then
 		if adelivery.target_effects then
 			for _, te in pairs(adelivery.target_effects) do
