@@ -2,7 +2,8 @@ name: Package Mod
 
 on:
   push:
-    branches: [main]
+    tags:
+      - 'v*'
 
 permissions:
   contents: write
@@ -21,6 +22,13 @@ jobs:
           echo "name=$NAME" >> "$GITHUB_OUTPUT"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "folder=${NAME}_${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Verify tag matches info.json version
+        run: |
+          if [ "$GITHUB_REF_NAME" != "v${{ steps.info.outputs.version }}" ]; then
+            echo "::error::Pushed tag '$GITHUB_REF_NAME' does not match info.json version '${{ steps.info.outputs.version }}' (expected 'v${{ steps.info.outputs.version }}'). Bump info.json or retag."
+            exit 1
+          fi
 
       - name: Create mod zip
         run: |
@@ -43,9 +51,9 @@ jobs:
           FOLDER=${{ steps.info.outputs.folder }}
           TAG="v${VERSION}"
 
-          # Delete existing release/tag if version unchanged
+          # Replace any existing release for this tag (keep the tag itself,
+          # since it is the trigger) so re-runs publish a fresh asset.
           gh release delete "$TAG" --yes 2>/dev/null || true
-          git push origin --delete "$TAG" 2>/dev/null || true
 
           gh release create "$TAG" \
             "${FOLDER}.zip" \
