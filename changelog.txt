@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.0.2
-Date: Jun 4, 2026
+Date: Jun 29, 2026
   Bugfixes:
     - Fuel blacklist now works with a single entry. Previously, with quality enabled, one item name mapped to several entries (one per quality) and only some were removed, so blacklisted fuels like wood or spoilage were still inserted. (Reported on the mod portal; workaround had been to list each item twice.)
   Features:
@@ -10,12 +10,12 @@ Date: Jun 4, 2026
     - Loop-detection notices during ammo damage/radius calculation (seen with some modded recursive projectiles) now go to the log instead of being printed to every player in chat.
 ---------------------------------------------------------------------------------------------------
 Version: 1.0.1
-Date: Jun 4, 2026
+Date: Jun 29, 2026
   Bugfixes:
     - Fix the toolbar toggle button showing "off" when the mod is added to an existing save. The mod is enabled by default, so the first click silently disabled it; the button now reflects the actual enabled state on load.
 ---------------------------------------------------------------------------------------------------
 Version: 1.0.0
-Date: Jun 4, 2026
+Date: Jun 29, 2026
   Features:
     - First stable (1.0.0) release.
     - Target Factorio 2.1 (now requires base >= 2.1).
